@@ -1,0 +1,25 @@
+{
+  "name": "useful-artifacts",
+  "private": true,
+  "packageManager": "pnpm@10.15.1",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "registry:build": "shadcn build",
+    "typecheck": "tsc --noEmit",
+    "build": "pnpm registry:build && pnpm typecheck && vite build",
+    "preview": "vite preview --host 127.0.0.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.1",
+    "shadcn": "^4.7.0",
+    "typescript": "^6.0.3",
+    "vite": "^8.0.0"
+  },
+  "dependencies": {
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6"
+  }
+}
