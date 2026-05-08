@@ -988,7 +988,7 @@ export function App() {
                   })}
                 </div>
 
-                <Card className="bg-[var(--surface-tint)] shadow-none">
+                <Card className="self-start bg-[var(--surface-tint)] shadow-none">
                   <CardHeader>
                     <Badge className="w-fit" variant="outline">
                       <Info data-icon="inline-start" />
