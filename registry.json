@@ -2,5 +2,24 @@
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "useful-artifacts",
   "homepage": "https://example.com/useful-artifacts",
-  "items": []
+  "items": [
+    {
+      "name": "use-decorator",
+      "type": "registry:hook",
+      "title": "useDecorator",
+      "description": "A typed helper hook for selecting decoration metadata by value.",
+      "dependencies": ["@phosphor-icons/react"],
+      "files": [
+        {
+          "path": "registry/new-york/hooks/use-decorator.ts",
+          "type": "registry:hook"
+        },
+        {
+          "path": "registry/new-york/types/decoration.ts",
+          "type": "registry:file",
+          "target": "resources/js/types/decoration.ts"
+        }
+      ]
+    }
+  ]
 }
