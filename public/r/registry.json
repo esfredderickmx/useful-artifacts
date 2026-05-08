@@ -1,7 +1,7 @@
 {
   "$schema": "https://ui.shadcn.com/schema/registry.json",
   "name": "useful-artifacts",
-  "homepage": "https://example.com/useful-artifacts",
+  "homepage": "https://github.com/esfredderickmx/useful-artifacts",
   "items": [
     {
       "name": "use-decorator",

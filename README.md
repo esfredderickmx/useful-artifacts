@@ -1,59 +1,52 @@
 # Useful Artifacts Registry
 
-A small shadcn/ui registry for reusable React components, with Laravel and Inertia projects as the main target.
+A small shadcn/ui registry for reusable React, Inertia, and Laravel artifacts. Install items directly into a shadcn-enabled app by URL; no repo checkout is part of the consumer path.
 
-The local site is a Vite React app written in TypeScript. Vite serves the app from `src` and the generated registry payloads from `public/r`.
+## Registry
 
-## Build
-
-```bash
-pnpm registry:build
-```
-
-The build outputs registry JSON files to `public/r`.
-
-For the full app build:
+Open the hosted registry page and copy the command for the item you want. Each command follows the shadcn CLI registry item format:
 
 ```bash
-pnpm build
+pnpm dlx shadcn@latest add https://your-registry-origin/r/<item-name>.json
 ```
 
-## Test Locally
+The registry index is served at:
 
-Start the Vite dev server:
+```txt
+https://your-registry-origin/r/registry.json
+```
+
+## Items
+
+### useDecorator
+
+A typed helper hook for selecting decoration metadata by value.
 
 ```bash
-pnpm dev
+pnpm dlx shadcn@latest add https://your-registry-origin/r/use-decorator.json
 ```
 
-After adding a registry item, install it into a shadcn-enabled app:
+Targets:
+
+- `hooks/use-decorator.ts`
+- `resources/js/types/decoration.ts`
+
+Dependencies:
+
+- `@phosphor-icons/react`
+
+### DropSchemas Artisan Command
+
+A local-only Artisan command for dropping non-system PostgreSQL schemas on local and phpunit testing databases.
 
 ```bash
-pnpm dlx shadcn@latest add http://localhost:5173/r/<item-name>.json
+pnpm dlx shadcn@latest add https://your-registry-origin/r/drop-schemas.json
 ```
 
-If Vite prints a different port because `5173` is already in use, use that printed URL instead.
+Target:
 
-For a Laravel project, initialize shadcn with the Laravel template first if needed:
+- `app/Console/Commands/DropSchemas.php`
 
-```bash
-pnpm dlx shadcn@latest init --template laravel
-```
+## Laravel
 
-You can also register this registry in a Laravel project's `components.json` once it is hosted:
-
-```json
-{
-  "registries": {
-    "@useful": "https://your-domain.test/r/{name}.json"
-  }
-}
-```
-
-Then install items with:
-
-```bash
-pnpm dlx shadcn@latest add @useful/laravel-resource-card
-```
-
-The example component uses standard `@/components/ui/*` and `@/lib/utils` imports so the shadcn CLI can rewrite them to the target project's aliases.
+For Laravel projects that do not already have shadcn configured, initialize shadcn with the Laravel template first: `pnpm dlx shadcn@latest init --template laravel`.
