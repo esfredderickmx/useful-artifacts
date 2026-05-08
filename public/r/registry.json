@@ -20,6 +20,19 @@
           "target": "resources/js/types/decoration.ts"
         }
       ]
+    },
+    {
+      "name": "drop-schemas",
+      "type": "registry:file",
+      "title": "DropSchemas Artisan Command",
+      "description": "A local-only Artisan command for dropping non-system PostgreSQL schemas on local and phpunit testing databases.",
+      "files": [
+        {
+          "path": "registry/laravel/app/Console/Commands/DropSchemas.php",
+          "type": "registry:file",
+          "target": "app/Console/Commands/DropSchemas.php"
+        }
+      ]
     }
   ]
 }

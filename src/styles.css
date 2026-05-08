@@ -32,6 +32,7 @@ code {
 h1,
 h2,
 h3,
+h4,
 p {
   margin: 0;
 }
@@ -155,9 +156,86 @@ h2 {
   line-height: 1.6;
 }
 
+.style-list,
 .item-list {
   display: flex;
   flex-direction: column;
+}
+
+.style-list {
+  gap: 22px;
+}
+
+.style-section {
+  --style-accent: #334155;
+  --style-soft: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 18px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.style-section:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.style-section[data-style="react"] {
+  --style-accent: #0f766e;
+  --style-soft: #ecfdf5;
+}
+
+.style-section[data-style="laravel"] {
+  --style-accent: #b91c1c;
+  --style-soft: #fff1f2;
+}
+
+.style-heading {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: start;
+  padding: 14px 16px;
+  border-left: 4px solid var(--style-accent);
+  border-radius: 8px;
+  background: var(--style-soft);
+}
+
+.style-kicker {
+  color: var(--style-accent);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.style-heading h3 {
+  margin-top: 4px;
+  font-size: 1.15rem;
+}
+
+.style-heading p:last-child {
+  margin-top: 6px;
+  color: #475569;
+  line-height: 1.55;
+}
+
+.style-count {
+  display: inline-flex;
+  align-items: center;
+  min-height: 28px;
+  padding: 4px 10px;
+  border: 1px solid color-mix(in srgb, var(--style-accent) 28%, #ffffff);
+  border-radius: 999px;
+  background: #ffffff;
+  color: var(--style-accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.item-list {
   gap: 12px;
 }
 
@@ -170,7 +248,11 @@ h2 {
   border-radius: 8px;
 }
 
-.registry-item h3 {
+.registry-item > div:first-child {
+  min-width: 0;
+}
+
+.registry-item h4 {
   margin-top: 4px;
   font-size: 1.08rem;
 }
@@ -192,18 +274,27 @@ h2 {
 .tag {
   display: inline-flex;
   align-items: center;
-  height: 26px;
-  padding: 0 9px;
+  min-width: 0;
+  min-height: 26px;
+  max-width: 100%;
+  padding: 4px 9px;
   border: 1px solid #cbd5e1;
   border-radius: 999px;
   background: #eff6ff;
   color: #1e3a8a;
   font-size: 0.82rem;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .tag-muted {
   background: #ffffff;
   color: #52606d;
+}
+
+.tag-target {
+  background: #f8fafc;
+  color: #334155;
 }
 
 .workflow-panel {
@@ -253,6 +344,14 @@ h2 {
     flex-direction: column;
   }
 
+  .style-heading {
+    grid-template-columns: 1fr;
+  }
+
+  .style-count {
+    width: fit-content;
+  }
+
   .tag-row {
     justify-content: flex-start;
   }
@@ -269,6 +368,7 @@ h2 {
   .lede,
   .muted,
   .command-strip span,
+  .style-heading p:last-child,
   .registry-item p:last-child,
   .workflow-panel span,
   .status-panel {
@@ -288,9 +388,37 @@ h2 {
     border-color: #33332f;
   }
 
+  .style-section {
+    border-color: #33332f;
+  }
+
+  .style-section[data-style="react"] {
+    --style-soft: #102d2a;
+  }
+
+  .style-section[data-style="laravel"] {
+    --style-soft: #351618;
+  }
+
+  .style-count {
+    border-color: #33332f;
+    background: #1d1d1a;
+  }
+
   .tag {
     border-color: #0f766e;
     background: #123b37;
     color: #ccfbf1;
+  }
+
+  .tag.tag-muted,
+  .tag.tag-target {
+    border-color: #33332f;
+    background: #1d1d1a;
+    color: #bebdb5;
+  }
+
+  .tag.tag-target {
+    color: #f7f7f2;
   }
 }
