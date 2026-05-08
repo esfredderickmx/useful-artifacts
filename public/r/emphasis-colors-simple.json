@@ -17,23 +17,5 @@
       "interrogative": "oklch(0.702 0.183 293.541)"
     }
   },
-  "css": {
-    ":root": {
-      "--affirmative": "oklch(0.627 0.194 149.214)",
-      "--informative": "oklch(0.546 0.245 262.881)",
-      "--preventive": "oklch(0.666 0.179 58.318)",
-      "--interrogative": "oklch(0.541 0.281 293.009)"
-    },
-    ".dark": {
-      "--affirmative": "oklch(0.792 0.209 151.711)",
-      "--informative": "oklch(0.707 0.165 254.624)",
-      "--preventive": "oklch(0.828 0.189 84.429)",
-      "--interrogative": "oklch(0.702 0.183 293.541)"
-    }
-  },
-  "categories": [
-    "theme",
-    "colors"
-  ],
   "type": "registry:theme"
 }
