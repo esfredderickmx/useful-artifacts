@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import type { CSSProperties, ReactNode } from "react"
 import {
-  Atom,
   Blocks,
   Check,
   Code,
@@ -9,10 +8,7 @@ import {
   ExternalLink,
   FileJson,
   FileText,
-  Flame,
-  GitBranch,
   Info,
-  Keyboard,
   Layers,
   Link2,
   Moon,
@@ -26,6 +22,7 @@ import {
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
+import { GitHubIcon, LaravelIcon, ReactIcon, ShadcnUiIcon } from "@/components/brand-icons"
 import {
   Alert,
   AlertDescription,
@@ -114,7 +111,7 @@ const styleDetails: Record<string, StyleDetail> = {
       "border-[color:var(--react-border)] bg-[var(--react-soft)] text-[var(--react-foreground)]",
     panelClass:
       "border-[color:var(--react-border)] bg-[var(--react-soft)] text-[var(--react-foreground)]",
-    icon: Atom,
+    icon: ReactIcon,
   },
   laravel: {
     label: "Laravel",
@@ -125,7 +122,7 @@ const styleDetails: Record<string, StyleDetail> = {
       "border-[color:var(--laravel-border)] bg-[var(--laravel-soft)] text-[var(--laravel-foreground)]",
     panelClass:
       "border-[color:var(--laravel-border)] bg-[var(--laravel-soft)] text-[var(--laravel-foreground)]",
-    icon: Flame,
+    icon: LaravelIcon,
   },
   general: {
     label: "General",
@@ -593,7 +590,7 @@ export function App() {
           <nav className="flex flex-wrap items-center justify-between gap-3">
             <a className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight" href="/">
               <span className="inline-flex size-7 items-center justify-center rounded-md border border-border bg-card text-foreground">
-                <Blocks className="size-3.5" />
+                <ShadcnUiIcon className="size-3.5" />
               </span>
               Useful Artifacts
             </a>
@@ -608,7 +605,7 @@ export function App() {
                 <TooltipTrigger asChild>
                   <Button asChild aria-label="Open repository" size="icon-lg" variant="ghost">
                     <a href={repositoryUrl} rel="noreferrer" target="_blank">
-                      <GitBranch />
+                      <GitHubIcon />
                     </a>
                   </Button>
                 </TooltipTrigger>
@@ -628,7 +625,7 @@ export function App() {
                 className="h-7 border-[color:var(--info-border)] bg-[var(--info-soft)] text-[var(--info-foreground)]"
                 variant="outline"
               >
-                <Keyboard data-icon="inline-start" />
+                <ShadcnUiIcon data-icon="inline-start" />
                 shadcn registry
               </Badge>
               <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-none tracking-tight text-foreground sm:text-5xl lg:text-6xl">
@@ -650,7 +647,7 @@ export function App() {
                   }}
                 >
                   <a href={repositoryUrl} rel="noreferrer" target="_blank">
-                    <GitBranch data-icon="inline-start" />
+                    <GitHubIcon data-icon="inline-start" />
                     Open repo
                   </a>
                 </Button>
@@ -716,7 +713,7 @@ export function App() {
                           key={group.style}
                         >
                           <span className={cn("inline-flex size-7 items-center justify-center rounded-md", detail.iconWrapClass)}>
-                            <StyleIcon />
+                            <StyleIcon className="size-4.5" />
                           </span>
                           <span className="truncate text-sm font-semibold">{group.label}</span>
                           <span className="font-mono text-sm">{group.items.length}</span>
