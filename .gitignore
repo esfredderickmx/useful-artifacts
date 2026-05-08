@@ -8,3 +8,4 @@ dist
 .codex
 .agents
 skills-lock.json
+.vercel
