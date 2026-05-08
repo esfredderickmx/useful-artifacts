@@ -8,12 +8,12 @@
   ],
   "files": [
     {
-      "path": "registry/new-york/hooks/use-decorator.ts",
+      "path": "registry/react/hooks/use-decorator.ts",
       "content": "import { useMemo } from 'react';\nimport type { Decoration } from '@/types/decoration';\n\nexport function useDecorator<TValue extends string, TKeys extends keyof Decoration>(\n    decorations: Record<TValue, Pick<Decoration, TKeys>>,\n    value: TValue | null | undefined,\n): Pick<Decoration, TKeys> | null {\n    return useMemo(() => (value != null ? decorations[value] : null), [decorations, value]);\n}\n",
       "type": "registry:hook"
     },
     {
-      "path": "registry/new-york/types/decoration.ts",
+      "path": "registry/react/types/decoration.ts",
       "content": "import type { Icon } from '@phosphor-icons/react';\n\nexport type Decoration = {\n    label: string;\n    description: string;\n    icon: Icon;\n};\n",
       "type": "registry:file",
       "target": "resources/js/types/decoration.ts"

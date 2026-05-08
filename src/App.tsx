@@ -100,7 +100,7 @@ export function App() {
           {registryState.status === "error" && <p className="muted">{registryState.message}</p>}
 
           {registryState.status === "ready" && registryState.registry.items.length === 0 && (
-            <p className="muted">No registry items yet. Add source files under registry/new-york.</p>
+            <p className="muted">No registry items yet. Add source files under registry/react.</p>
           )}
 
           {registryState.status === "ready" && registryState.registry.items.length > 0 && (

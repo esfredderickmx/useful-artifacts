@@ -11,11 +11,11 @@
       "dependencies": ["@phosphor-icons/react"],
       "files": [
         {
-          "path": "registry/new-york/hooks/use-decorator.ts",
+          "path": "registry/react/hooks/use-decorator.ts",
           "type": "registry:hook"
         },
         {
-          "path": "registry/new-york/types/decoration.ts",
+          "path": "registry/react/types/decoration.ts",
           "type": "registry:file",
           "target": "resources/js/types/decoration.ts"
         }
