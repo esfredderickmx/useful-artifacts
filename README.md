@@ -47,6 +47,32 @@ Target:
 
 - `app/Console/Commands/DropSchemas.php`
 
+### Emphasis Colors (Full)
+
+A full semantic emphasis color layer with surface, foreground, and emphasis tokens for destructive, affirmative, informative, preventive, and interrogative states. This variant replaces `destructive` tokens.
+
+```bash
+pnpm dlx shadcn@latest add https://your-registry-origin/r/emphasis-colors-full.json
+```
+
+CSS variables:
+
+- `destructive`, `affirmative`, `informative`, `preventive`, `interrogative`
+- `destructive-foreground`, `affirmative-foreground`, `informative-foreground`, `preventive-foreground`, `interrogative-foreground`
+- `destructive-emphasis`, `affirmative-emphasis`, `informative-emphasis`, `preventive-emphasis`, `interrogative-emphasis`
+
+### Emphasis Colors (Simple)
+
+A lightweight semantic emphasis color layer that adds affirmative, informative, preventive, and interrogative tokens without replacing `destructive`.
+
+```bash
+pnpm dlx shadcn@latest add https://your-registry-origin/r/emphasis-colors-simple.json
+```
+
+CSS variables:
+
+- `affirmative`, `informative`, `preventive`, `interrogative`
+
 ## Laravel
 
 For Laravel projects that do not already have shadcn configured, initialize shadcn with the Laravel template first: `pnpm dlx shadcn@latest init --template laravel`.
