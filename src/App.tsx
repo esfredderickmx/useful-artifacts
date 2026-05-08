@@ -1,5 +1,57 @@
 import { useEffect, useMemo, useRef, useState } from "react"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
+import {
+  Atom,
+  Blocks,
+  Check,
+  Code,
+  Copy,
+  ExternalLink,
+  FileJson,
+  FileText,
+  Flame,
+  GitBranch,
+  Info,
+  Keyboard,
+  Layers,
+  Link2,
+  Moon,
+  RefreshCw,
+  Search,
+  Sun,
+  Target,
+  TriangleAlert,
+  X,
+  Zap,
+} from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/components/ui/alert"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardAction,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Kbd, KbdGroup } from "@/components/ui/kbd"
+import { Separator } from "@/components/ui/separator"
+import { Skeleton } from "@/components/ui/skeleton"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import { cn } from "@/lib/utils"
 
 type RegistryItem = {
   name: string
@@ -29,6 +81,9 @@ type RegistryState =
   | { status: "error"; message: string }
 
 type CopyState = { key: string; status: "copied" | "error" } | null
+type Theme = "light" | "dark"
+type IconComponent = LucideIcon
+type RevealStyle = CSSProperties & { "--index": number }
 
 type RegistryGroup = {
   style: string
@@ -37,25 +92,71 @@ type RegistryGroup = {
   items: RegistryItem[]
 }
 
-const registryUrl = "/r/registry.json"
+type StyleDetail = {
+  label: string
+  description: string
+  badgeClass: string
+  iconWrapClass: string
+  panelClass: string
+  icon: IconComponent
+}
 
-const styleDetails: Record<string, { label: string; description: string; accent: string }> = {
+const registryUrl = "/r/registry.json"
+const repositoryUrl = "https://github.com/esfredderickmx/useful-artifacts"
+
+const styleDetails: Record<string, StyleDetail> = {
   react: {
     label: "React",
     description: "Hooks, types, and client utilities for React, Inertia, and Vite surfaces.",
-    accent: "bg-teal-700",
+    badgeClass:
+      "border-[color:var(--react-border)] bg-[var(--react-soft)] text-[var(--react-foreground)]",
+    iconWrapClass:
+      "border-[color:var(--react-border)] bg-[var(--react-soft)] text-[var(--react-foreground)]",
+    panelClass:
+      "border-[color:var(--react-border)] bg-[var(--react-soft)] text-[var(--react-foreground)]",
+    icon: Atom,
   },
   laravel: {
     label: "Laravel",
     description: "Framework files that land directly in Laravel application structure.",
-    accent: "bg-rose-700",
+    badgeClass:
+      "border-[color:var(--laravel-border)] bg-[var(--laravel-soft)] text-[var(--laravel-foreground)]",
+    iconWrapClass:
+      "border-[color:var(--laravel-border)] bg-[var(--laravel-soft)] text-[var(--laravel-foreground)]",
+    panelClass:
+      "border-[color:var(--laravel-border)] bg-[var(--laravel-soft)] text-[var(--laravel-foreground)]",
+    icon: Flame,
   },
   general: {
     label: "General",
     description: "Registry artifacts that are not tied to one framework source folder.",
-    accent: "bg-zinc-700",
+    badgeClass:
+      "border-[color:var(--general-border)] bg-[var(--general-soft)] text-[var(--general-foreground)]",
+    iconWrapClass:
+      "border-[color:var(--general-border)] bg-[var(--general-soft)] text-[var(--general-foreground)]",
+    panelClass:
+      "border-[color:var(--general-border)] bg-[var(--general-soft)] text-[var(--general-foreground)]",
+    icon: Layers,
   },
 }
+
+const contractItems = [
+  {
+    icon: Link2,
+    title: "Install by URL",
+    description: "Each card points to a generated /r/name.json item payload.",
+  },
+  {
+    icon: Target,
+    title: "Explicit targets",
+    description: "File destinations are visible before the CLI writes anything.",
+  },
+  {
+    icon: Zap,
+    title: "Deps included",
+    description: "Package and registry dependencies travel with the manifest.",
+  },
+]
 
 function registryStyleFor(item: RegistryItem): string {
   const sourcePath = item.files?.[0]?.path
@@ -84,8 +185,14 @@ function styleDescription(style: string): string {
   return styleDetails[style]?.description ?? `Artifacts sourced from registry/${style}.`
 }
 
-function styleAccent(style: string): string {
-  return styleDetails[style]?.accent ?? styleDetails.general.accent
+function styleDetailFor(style: string): StyleDetail {
+  return (
+    styleDetails[style] ?? {
+      ...styleDetails.general,
+      label: styleLabel(style),
+      description: styleDescription(style),
+    }
+  )
 }
 
 function groupRegistryItems(items: RegistryItem[]): RegistryGroup[] {
@@ -156,6 +263,24 @@ function itemSearchText(item: RegistryItem): string {
     .toLowerCase()
 }
 
+function getInitialTheme(): Theme {
+  if (typeof window === "undefined") {
+    return "light"
+  }
+
+  const storedTheme = window.localStorage.getItem("registry-theme")
+
+  if (storedTheme === "light" || storedTheme === "dark") {
+    return storedTheme
+  }
+
+  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light"
+}
+
+function revealStyle(index: number): RevealStyle {
+  return { "--index": index }
+}
+
 async function copyToClipboard(value: string) {
   if (navigator.clipboard?.writeText) {
     await navigator.clipboard.writeText(value)
@@ -182,28 +307,135 @@ async function copyToClipboard(value: string) {
 
 function CopyButton({
   children = "Copy",
+  className,
+  compact = false,
   copyKey,
   copyState,
+  iconOnly = false,
+  inverse = false,
   value,
   onCopy,
 }: {
   children?: ReactNode
+  className?: string
+  compact?: boolean
   copyKey: string
   copyState: CopyState
+  iconOnly?: boolean
+  inverse?: boolean
   value: string
   onCopy: (copyKey: string, value: string) => void
 }) {
   const activeState = copyState?.key === copyKey ? copyState.status : null
   const label = activeState === "copied" ? "Copied" : activeState === "error" ? "Retry" : children
+  const Icon = activeState === "copied" ? Check : activeState === "error" ? RefreshCw : Copy
+  const button = (
+    <Button
+      aria-label={iconOnly ? String(label) : undefined}
+      className={cn(
+        inverse &&
+          "border-[color:var(--code-border)] bg-white/10 text-[var(--code-foreground)] hover:bg-white/15 hover:text-[var(--code-foreground)]",
+        className
+      )}
+      onClick={() => onCopy(copyKey, value)}
+      size={iconOnly ? (compact ? "icon-xs" : "icon-sm") : compact ? "sm" : "default"}
+      type="button"
+      variant={activeState === "error" ? "destructive" : "outline"}
+    >
+      <Icon data-icon={iconOnly ? undefined : "inline-start"} />
+      {!iconOnly && <span aria-live="polite">{label}</span>}
+    </Button>
+  )
+
+  if (!iconOnly) {
+    return button
+  }
 
   return (
-    <button
-      className="inline-flex min-h-9 shrink-0 items-center justify-center rounded-md border border-zinc-300 bg-white px-3 text-sm font-semibold text-zinc-900 shadow-[0_1px_0_rgba(24,24,27,0.05)] transition duration-300 hover:border-zinc-400 hover:bg-zinc-50 active:-translate-y-px"
-      onClick={() => onCopy(copyKey, value)}
-      type="button"
-    >
-      <span aria-live="polite">{label}</span>
-    </button>
+    <Tooltip>
+      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+function ThemeToggle({ theme, onToggle }: { theme: Theme; onToggle: () => void }) {
+  const isDark = theme === "dark"
+  const label = isDark ? "Use light theme" : "Use dark theme"
+  const Icon = isDark ? Sun : Moon
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          aria-label={label}
+          aria-pressed={isDark}
+          onClick={onToggle}
+          size="icon-lg"
+          type="button"
+          variant="outline"
+        >
+          <Icon />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  )
+}
+
+function CodeBlock({
+  copyKey,
+  copyState,
+  hints = ["pnpm", "shadcn"],
+  label,
+  value,
+  onCopy,
+}: {
+  copyKey: string
+  copyState: CopyState
+  hints?: string[]
+  label: string
+  value: string
+  onCopy: (copyKey: string, value: string) => void
+}) {
+  return (
+    <div className="overflow-hidden rounded-lg border border-[color:var(--code-border)] bg-[var(--code)] text-[var(--code-foreground)] shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
+      <div className="flex items-center justify-between gap-3 border-b border-[color:var(--code-border)] px-3 py-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <Badge
+            className="h-6 border-[color:var(--code-border)] bg-white/10 text-[var(--code-foreground)]"
+            variant="outline"
+          >
+            <Code data-icon="inline-start" />
+            {label}
+          </Badge>
+          <KbdGroup className="hidden sm:inline-flex">
+            {hints.map((hint) => (
+              <Kbd
+                className="bg-white/10 text-[var(--code-muted)] ring-1 ring-[var(--code-border)]"
+                key={hint}
+              >
+                {hint}
+              </Kbd>
+            ))}
+          </KbdGroup>
+        </div>
+        <CopyButton
+          compact
+          copyKey={copyKey}
+          copyState={copyState}
+          iconOnly
+          inverse
+          onCopy={onCopy}
+          value={value}
+        />
+      </div>
+      <pre className="overflow-x-auto px-3 py-3">
+        <code className="font-mono text-[0.82rem] leading-6 text-[var(--code-foreground)]">
+          {value}
+        </code>
+      </pre>
+    </div>
   )
 }
 
@@ -211,28 +443,57 @@ function LoadingCatalog() {
   return (
     <div className="grid gap-3">
       {Array.from({ length: 3 }, (_, index) => (
-        <div
-          className="animate-pulse rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_14px_34px_-28px_rgba(24,24,27,0.35)]"
-          key={index}
-        >
-          <div className="mb-4 h-3 w-28 rounded-full bg-zinc-200" />
-          <div className="mb-2 h-5 w-1/2 rounded-full bg-zinc-200" />
-          <div className="h-3 w-4/5 rounded-full bg-zinc-100" />
-          <div className="mt-4 h-11 rounded-md bg-zinc-100" />
-        </div>
+        <Card className="registry-reveal shadow-[0_18px_46px_-34px_var(--elevation-color)]" key={index} style={revealStyle(index)}>
+          <CardHeader>
+            <Skeleton className="h-5 w-28" />
+            <Skeleton className="h-7 w-3/5" />
+          </CardHeader>
+          <CardContent className="grid gap-3">
+            <Skeleton className="h-4 w-4/5" />
+            <Skeleton className="h-20 w-full" />
+            <div className="grid gap-2 sm:grid-cols-2">
+              <Skeleton className="h-8 w-full" />
+              <Skeleton className="h-8 w-full" />
+            </div>
+          </CardContent>
+        </Card>
       ))}
     </div>
   )
 }
 
-function EmptyState({ query }: { query: string }) {
+function EmptyState({
+  query,
+  onClear,
+}: {
+  query: string
+  onClear: () => void
+}) {
   return (
-    <div className="rounded-lg border border-dashed border-zinc-300 bg-white p-8 text-zinc-600">
-      <p className="text-sm font-semibold uppercase text-zinc-500">No results</p>
-      <h3 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">
-        {query ? "No registry items match this filter." : "No registry items are published yet."}
-      </h3>
-    </div>
+    <Card className="border-dashed shadow-none">
+      <CardHeader>
+        <Badge className="w-fit" variant="outline">
+          <Info data-icon="inline-start" />
+          No results
+        </Badge>
+        <CardTitle className="text-2xl">
+          {query ? "No registry items match this filter." : "No registry items are published yet."}
+        </CardTitle>
+        {query && (
+          <CardDescription>
+            Clear the filter or search by framework, target path, dependency, or item name.
+          </CardDescription>
+        )}
+      </CardHeader>
+      {query && (
+        <CardFooter>
+          <Button onClick={onClear} type="button" variant="outline">
+            <X data-icon="inline-start" />
+            Clear search
+          </Button>
+        </CardFooter>
+      )}
+    </Card>
   )
 }
 
@@ -240,6 +501,7 @@ export function App() {
   const [registryState, setRegistryState] = useState<RegistryState>({ status: "loading" })
   const [query, setQuery] = useState("")
   const [copyState, setCopyState] = useState<CopyState>(null)
+  const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const resetTimer = useRef<number | undefined>(undefined)
 
   useEffect(() => {
@@ -276,6 +538,14 @@ export function App() {
   }, [])
 
   useEffect(() => {
+    const root = document.documentElement
+
+    root.classList.toggle("dark", theme === "dark")
+    root.style.colorScheme = theme
+    window.localStorage.setItem("registry-theme", theme)
+  }, [theme])
+
+  useEffect(() => {
     return () => {
       window.clearTimeout(resetTimer.current)
     }
@@ -298,6 +568,11 @@ export function App() {
   const itemCount = readyItems.length
   const fileCount = readyItems.reduce((total, item) => total + (item.files?.length ?? 0), 0)
   const dependencyCount = new Set(readyItems.flatMap(itemDependencies)).size
+  const statItems = [
+    { label: "Items", value: registryState.status === "ready" ? itemCount : "...", icon: Blocks },
+    { label: "Files", value: registryState.status === "ready" ? fileCount : "...", icon: FileText },
+    { label: "Deps", value: registryState.status === "ready" ? dependencyCount : "...", icon: Zap },
+  ]
 
   async function handleCopy(copyKey: string, value: string) {
     try {
@@ -312,122 +587,199 @@ export function App() {
   }
 
   return (
-    <main className="min-h-[100dvh] overflow-hidden bg-[#f6f8fb] text-zinc-950">
+    <main className="min-h-[100dvh] overflow-hidden bg-background text-foreground">
       <div className="mx-auto flex w-full max-w-[1400px] flex-col gap-8 px-4 py-5 sm:px-6 lg:px-8">
         <header className="grid gap-7">
-          <nav className="flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-4">
-            <a className="text-sm font-bold tracking-tight" href="/">
+          <nav className="flex flex-wrap items-center justify-between gap-3">
+            <a className="inline-flex items-center gap-2 text-sm font-semibold tracking-tight" href="/">
+              <span className="inline-flex size-7 items-center justify-center rounded-md border border-border bg-card text-foreground">
+                <Blocks className="size-3.5" />
+              </span>
               Useful Artifacts
             </a>
-            <div className="flex items-center gap-2 text-sm">
-              <a
-                className="rounded-md px-2.5 py-1.5 font-semibold text-zinc-600 transition hover:bg-white hover:text-zinc-950"
-                href={registryUrl}
-              >
-                registry.json
-              </a>
-              <span
-                className="inline-flex min-h-8 items-center gap-2 rounded-md border border-teal-700/20 bg-teal-700/10 px-2.5 text-sm font-semibold text-teal-900"
-                aria-live="polite"
-              >
-                <span className="h-2 w-2 rounded-full bg-teal-700 shadow-[0_0_0_4px_rgba(15,118,110,0.12)]" />
-                {registryState.status === "ready"
-                  ? `${itemCount} ${itemCount === 1 ? "item" : "items"}`
-                  : registryState.status === "error"
-                    ? "Offline"
-                    : "Loading"}
-              </span>
+            <div className="flex flex-wrap items-center justify-end gap-2">
+              <Button asChild size="sm" variant="ghost">
+                <a href={registryUrl}>
+                  <FileJson data-icon="inline-start" />
+                  registry.json
+                </a>
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button asChild aria-label="Open repository" size="icon-lg" variant="ghost">
+                    <a href={repositoryUrl} rel="noreferrer" target="_blank">
+                      <GitBranch />
+                    </a>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Open repository</TooltipContent>
+              </Tooltip>
+              <ThemeToggle
+                onToggle={() => setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"))}
+                theme={theme}
+              />
             </div>
           </nav>
+          <Separator />
 
-          <section className="grid min-h-[62dvh] items-end gap-6 lg:grid-cols-[minmax(0,1.16fr)_minmax(360px,0.84fr)]">
+          <section className="grid min-h-[62dvh] items-end gap-6 lg:grid-cols-[minmax(0,1.12fr)_minmax(360px,0.88fr)]">
             <div className="max-w-4xl pb-3 pt-12 lg:pb-10 lg:pt-20">
-              <p className="text-sm font-bold uppercase text-teal-800">shadcn registry</p>
-              <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-none tracking-tight text-zinc-950 sm:text-5xl lg:text-6xl">
+              <Badge
+                className="h-7 border-[color:var(--info-border)] bg-[var(--info-soft)] text-[var(--info-foreground)]"
+                variant="outline"
+              >
+                <Keyboard data-icon="inline-start" />
+                shadcn registry
+              </Badge>
+              <h1 className="mt-5 max-w-3xl text-4xl font-semibold leading-none tracking-tight text-foreground sm:text-5xl lg:text-6xl">
                 Useful artifacts installed straight into your app.
               </h1>
-              <p className="mt-5 max-w-[64ch] text-base leading-8 text-zinc-600 sm:text-lg">
+              <p className="mt-5 max-w-[64ch] text-base leading-8 text-muted-foreground sm:text-lg">
                 Hooks, framework files, and typed helpers delivered as registry JSON. Use the
                 item URL, let the shadcn CLI write the files, and skip the repo checkout.
               </p>
 
-              <dl className="mt-8 grid max-w-2xl grid-cols-3 divide-x divide-zinc-200 rounded-lg border border-zinc-200 bg-white shadow-[0_20px_55px_-38px_rgba(24,24,27,0.5)]">
-                <div className="p-4">
-                  <dt className="text-xs font-bold uppercase text-zinc-500">Items</dt>
-                  <dd className="mt-2 font-mono text-2xl text-zinc-950">{itemCount}</dd>
-                </div>
-                <div className="p-4">
-                  <dt className="text-xs font-bold uppercase text-zinc-500">Files</dt>
-                  <dd className="mt-2 font-mono text-2xl text-zinc-950">{fileCount}</dd>
-                </div>
-                <div className="p-4">
-                  <dt className="text-xs font-bold uppercase text-zinc-500">Deps</dt>
-                  <dd className="mt-2 font-mono text-2xl text-zinc-950">{dependencyCount}</dd>
-                </div>
-              </dl>
-            </div>
-
-            <aside className="relative overflow-hidden rounded-lg border border-zinc-200 bg-zinc-950 p-5 text-white shadow-[0_26px_60px_-36px_rgba(24,24,27,0.8)]">
-              <div className="absolute inset-x-0 top-0 h-px bg-white/20" />
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <p className="text-xs font-bold uppercase text-teal-200">Registry endpoint</p>
-                  <h2 className="mt-2 text-2xl font-semibold tracking-tight">Public JSON index</h2>
-                </div>
+              <div className="mt-7 flex flex-wrap items-center gap-2">
+                <Button
+                  asChild
+                  className="hover:opacity-90"
+                  size="lg"
+                  style={{
+                    backgroundColor: "var(--primary)",
+                    color: "var(--primary-foreground)",
+                  }}
+                >
+                  <a href={repositoryUrl} rel="noreferrer" target="_blank">
+                    <GitBranch data-icon="inline-start" />
+                    Open repo
+                  </a>
+                </Button>
                 <CopyButton
-                  copyKey="registry-endpoint"
+                  copyKey="registry-endpoint-hero"
                   copyState={copyState}
                   onCopy={handleCopy}
                   value={registryEndpoint}
-                />
+                >
+                  Copy endpoint
+                </CopyButton>
               </div>
-              <code className="mt-5 block overflow-x-auto rounded-md border border-white/10 bg-white/10 p-4 font-mono text-sm leading-6 text-zinc-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
-                {registryEndpoint}
-              </code>
-              <div className="mt-6 grid gap-3">
-                {registryState.status === "ready" &&
-                  groupRegistryItems(readyItems).map((group) => (
-                    <div
-                      className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-md border border-white/10 bg-white/[0.06] px-3 py-2.5"
-                      key={group.style}
-                    >
-                      <span className={`h-2.5 w-2.5 rounded-full ${styleAccent(group.style)}`} />
-                      <span className="truncate text-sm font-semibold text-zinc-100">{group.label}</span>
-                      <span className="font-mono text-sm text-zinc-300">{group.items.length}</span>
+
+              <dl className="mt-8 grid max-w-2xl grid-cols-1 overflow-hidden rounded-lg border border-border bg-card shadow-[0_20px_55px_-38px_var(--elevation-color)] sm:grid-cols-3 sm:divide-x sm:divide-border">
+                {statItems.map((stat) => {
+                  const StatIcon = stat.icon
+
+                  return (
+                    <div className="flex items-center gap-3 p-4" key={stat.label}>
+                      <span className="inline-flex size-9 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
+                        <StatIcon />
+                      </span>
+                      <div>
+                        <dt className="text-xs font-semibold uppercase text-muted-foreground">{stat.label}</dt>
+                        <dd className="mt-1 font-mono text-2xl text-foreground">{stat.value}</dd>
+                      </div>
                     </div>
-                  ))}
-                {registryState.status === "loading" && (
-                  <div className="h-20 animate-pulse rounded-md border border-white/10 bg-white/[0.06]" />
-                )}
-                {registryState.status === "error" && (
-                  <p className="rounded-md border border-rose-300/30 bg-rose-500/10 p-3 text-sm text-rose-100">
-                    {registryState.message}
-                  </p>
-                )}
-              </div>
-            </aside>
+                  )
+                })}
+              </dl>
+            </div>
+
+            <Card className="relative bg-card/90 shadow-[0_26px_60px_-36px_var(--elevation-color)]">
+              <CardHeader>
+                <Badge className="w-fit" variant="secondary">
+                  <Link2 data-icon="inline-start" />
+                  Registry endpoint
+                </Badge>
+                <CardTitle className="text-2xl">Public JSON index</CardTitle>
+                <CardDescription>Copy once, install individual artifacts from the cards below.</CardDescription>
+              </CardHeader>
+              <CardContent className="grid gap-4">
+                <CodeBlock
+                  copyKey="registry-endpoint"
+                  copyState={copyState}
+                  hints={["url", "json"]}
+                  label="endpoint"
+                  onCopy={handleCopy}
+                  value={registryEndpoint}
+                />
+                <div className="grid gap-2">
+                  {registryState.status === "ready" &&
+                    groupRegistryItems(readyItems).map((group) => {
+                      const detail = styleDetailFor(group.style)
+                      const StyleIcon = detail.icon
+
+                      return (
+                        <div
+                          className={cn(
+                            "grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-lg border px-3 py-2.5",
+                            detail.panelClass
+                          )}
+                          key={group.style}
+                        >
+                          <span className={cn("inline-flex size-7 items-center justify-center rounded-md", detail.iconWrapClass)}>
+                            <StyleIcon />
+                          </span>
+                          <span className="truncate text-sm font-semibold">{group.label}</span>
+                          <span className="font-mono text-sm">{group.items.length}</span>
+                        </div>
+                      )
+                    })}
+                  {registryState.status === "loading" && <Skeleton className="h-20 w-full" />}
+                  {registryState.status === "error" && (
+                    <Alert variant="destructive">
+                      <TriangleAlert />
+                      <AlertTitle>Registry unavailable</AlertTitle>
+                      <AlertDescription>{registryState.message}</AlertDescription>
+                    </Alert>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
           </section>
         </header>
 
-        <section className="grid gap-5 border-t border-zinc-200 pt-8 lg:grid-cols-[minmax(240px,0.36fr)_minmax(0,1fr)]">
+        <Separator />
+
+        <section className="grid gap-5 lg:grid-cols-[minmax(240px,0.36fr)_minmax(0,1fr)]">
           <div className="lg:sticky lg:top-6 lg:self-start">
-            <p className="text-sm font-bold uppercase text-teal-800">Install commands</p>
-            <h2 className="mt-2 max-w-sm text-3xl font-semibold leading-tight tracking-tight text-zinc-950">
+            <Badge
+              className="border-[color:var(--info-border)] bg-[var(--info-soft)] text-[var(--info-foreground)]"
+              variant="outline"
+            >
+              <Code data-icon="inline-start" />
+              Install commands
+            </Badge>
+            <h2 className="mt-3 max-w-sm text-3xl font-semibold leading-tight tracking-tight text-foreground">
               Copy the exact command for each item.
             </h2>
-            <label className="mt-5 block">
-              <span className="text-sm font-semibold text-zinc-700">Search catalog</span>
-              <input
-                className="mt-2 h-11 w-full rounded-md border border-zinc-300 bg-white px-3 text-base text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-teal-700 focus:ring-4 focus:ring-teal-700/10"
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="React, Laravel, target path"
-                type="search"
-                value={query}
-              />
+            <label className="mt-5 flex flex-col gap-2">
+              <span className="text-sm font-semibold text-foreground">Search catalog</span>
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="h-10 pl-8 pr-9"
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder="React, Laravel, target path"
+                  type="search"
+                  value={query}
+                />
+                {query && (
+                  <Button
+                    aria-label="Clear search"
+                    className="absolute right-1 top-1/2 -translate-y-1/2"
+                    onClick={() => setQuery("")}
+                    size="icon-sm"
+                    type="button"
+                    variant="ghost"
+                  >
+                    <X />
+                  </Button>
+                )}
+              </div>
             </label>
             {filteredItems.length > 1 && (
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <CopyButton
+                  className="text-[0.8rem] [&_svg:not([class*='size-'])]:size-3.5"
                   copyKey="all-visible"
                   copyState={copyState}
                   onCopy={handleCopy}
@@ -435,7 +787,7 @@ export function App() {
                 >
                   Copy visible
                 </CopyButton>
-                <span className="text-sm text-zinc-500">{filteredItems.length} commands</span>
+                <Badge variant="secondary">{filteredItems.length} commands</Badge>
               </div>
             )}
           </div>
@@ -444,186 +796,233 @@ export function App() {
             {registryState.status === "loading" && <LoadingCatalog />}
 
             {registryState.status === "error" && (
-              <div className="rounded-lg border border-rose-200 bg-white p-6 text-rose-900">
-                <p className="text-sm font-bold uppercase">Registry unavailable</p>
-                <p className="mt-2 text-base text-rose-800">{registryState.message}</p>
-              </div>
+              <Alert variant="destructive">
+                <TriangleAlert />
+                <AlertTitle>Registry unavailable</AlertTitle>
+                <AlertDescription>{registryState.message}</AlertDescription>
+              </Alert>
             )}
 
-            {registryState.status === "ready" && filteredItems.length === 0 && <EmptyState query={query} />}
+            {registryState.status === "ready" && filteredItems.length === 0 && (
+              <EmptyState onClear={() => setQuery("")} query={query} />
+            )}
 
             {registryState.status === "ready" &&
-              filteredItems.map((item) => {
+              filteredItems.map((item, index) => {
+                const style = registryStyleFor(item)
+                const detail = styleDetailFor(style)
+                const StyleIcon = detail.icon
                 const installUrl = itemInstallUrl(origin, item)
                 const command = itemInstallCommand(origin, item)
+                const dependencies = itemDependencies(item)
 
                 return (
-                  <article
-                    className="grid gap-4 rounded-lg border border-zinc-200 bg-white p-4 shadow-[0_18px_46px_-34px_rgba(24,24,27,0.55)] transition duration-300 hover:-translate-y-0.5 hover:border-zinc-300"
+                  <Card
+                    className="registry-reveal border-border/80 bg-card/95 shadow-[0_18px_46px_-34px_var(--elevation-color)] transition-transform duration-300 hover:-translate-y-0.5"
                     key={item.name}
+                    style={revealStyle(index)}
                   >
-                    <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2">
-                          <span
-                            className={`h-2.5 w-2.5 rounded-full ${styleAccent(registryStyleFor(item))}`}
-                          />
-                          <span className="text-xs font-bold uppercase text-zinc-500">
-                            {styleLabel(registryStyleFor(item))} / {formatType(item.type)}
-                          </span>
+                    <CardHeader>
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span className={cn("inline-flex size-9 shrink-0 items-center justify-center rounded-lg border", detail.iconWrapClass)}>
+                          <StyleIcon />
+                        </span>
+                        <div className="min-w-0">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <Badge className={cn("h-6", detail.badgeClass)} variant="outline">
+                              {detail.label}
+                            </Badge>
+                            <Badge variant="secondary">{formatType(item.type)}</Badge>
+                          </div>
+                          <CardTitle className="mt-3 text-2xl">{item.title ?? item.name}</CardTitle>
                         </div>
-                        <h3 className="mt-2 text-2xl font-semibold tracking-tight text-zinc-950">
-                          {item.title ?? item.name}
-                        </h3>
-                        {item.description && (
-                          <p className="mt-2 max-w-[72ch] text-base leading-7 text-zinc-600">
-                            {item.description}
-                          </p>
-                        )}
                       </div>
-                      <a
-                        className="inline-flex min-h-9 items-center justify-center rounded-md border border-zinc-300 px-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 hover:text-zinc-950"
-                        href={installUrl}
-                      >
-                        JSON
-                      </a>
-                    </div>
+                      <CardAction>
+                        <Button asChild size="sm" variant="outline">
+                          <a href={installUrl}>
+                            JSON
+                            <ExternalLink data-icon="inline-end" />
+                          </a>
+                        </Button>
+                      </CardAction>
+                    </CardHeader>
 
-                    <div className="grid gap-2 rounded-md border border-zinc-200 bg-zinc-950 p-3 text-white md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
-                      <code className="overflow-x-auto whitespace-nowrap font-mono text-sm text-zinc-100">
-                        {command}
-                      </code>
-                      <CopyButton
+                    <CardContent className="grid gap-4">
+                      {item.description && (
+                        <p className="max-w-[72ch] text-base leading-7 text-muted-foreground">
+                          {item.description}
+                        </p>
+                      )}
+
+                      <CodeBlock
                         copyKey={`install-${item.name}`}
                         copyState={copyState}
+                        label="install"
                         onCopy={handleCopy}
                         value={command}
                       />
-                    </div>
 
-                    <div className="grid gap-3 border-t border-zinc-100 pt-3 md:grid-cols-2">
-                      <div>
-                        <p className="text-xs font-bold uppercase text-zinc-500">Targets</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {itemTargets(item).map((target) => (
-                            <span
-                              className="max-w-full rounded-md border border-zinc-200 bg-zinc-50 px-2.5 py-1 font-mono text-xs text-zinc-700"
-                              key={target}
-                            >
-                              {target}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-                      <div>
-                        <p className="text-xs font-bold uppercase text-zinc-500">Dependencies</p>
-                        <div className="mt-2 flex flex-wrap gap-2">
-                          {itemDependencies(item).length > 0 ? (
-                            itemDependencies(item).map((dependency) => (
-                              <span
-                                className="max-w-full rounded-md border border-teal-700/20 bg-teal-700/10 px-2.5 py-1 font-mono text-xs text-teal-900"
-                                key={dependency}
+                      <div className="grid gap-3 md:grid-cols-2">
+                        <div className="grid gap-2">
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+                            <Target className="size-3.5" />
+                            Targets
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {itemTargets(item).map((target) => (
+                              <Badge
+                                className="h-auto max-w-full justify-start rounded-md px-2.5 py-1 font-mono text-[0.72rem] whitespace-normal break-all"
+                                key={target}
+                                variant="outline"
                               >
-                                {dependency}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="text-sm text-zinc-500">None</span>
-                          )}
+                                {target}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div className="grid gap-2">
+                          <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground">
+                            <Zap className="size-3.5" />
+                            Dependencies
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {dependencies.length > 0 ? (
+                              dependencies.map((dependency) => (
+                                <Badge
+                                  className={cn(
+                                    "h-auto max-w-full justify-start rounded-md px-2.5 py-1 font-mono text-[0.72rem] whitespace-normal break-all",
+                                    detail.badgeClass
+                                  )}
+                                  key={dependency}
+                                  variant="outline"
+                                >
+                                  {dependency}
+                                </Badge>
+                              ))
+                            ) : (
+                              <Badge variant="secondary">No deps</Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </article>
+                    </CardContent>
+                  </Card>
                 )
               })}
           </div>
         </section>
 
         {registryState.status === "ready" && registryGroups.length > 0 && (
-          <section className="border-t border-zinc-200 py-8">
-            <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-sm font-bold uppercase text-teal-800">Catalog</p>
-                <h2 className="mt-2 text-3xl font-semibold tracking-tight text-zinc-950">
-                  Registry groups built to grow.
-                </h2>
-              </div>
-              <span className="font-mono text-sm text-zinc-500">{filteredItems.length} visible items</span>
-            </div>
-
-            <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
-              <div className="grid gap-4">
-                {registryGroups.map((group) => (
-                  <section
-                    className="rounded-lg border border-zinc-200 bg-white p-5 shadow-[0_18px_46px_-34px_rgba(24,24,27,0.5)]"
-                    key={group.style}
+          <>
+            <Separator />
+            <section className="pb-8">
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                  <Badge
+                    className="border-[color:var(--info-border)] bg-[var(--info-soft)] text-[var(--info-foreground)]"
+                    variant="outline"
                   >
-                    <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_auto]">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className={`h-2.5 w-2.5 rounded-full ${styleAccent(group.style)}`} />
-                          <h3 className="text-xl font-semibold tracking-tight text-zinc-950">
-                            {group.label}
-                          </h3>
-                        </div>
-                        <p className="mt-2 max-w-[68ch] leading-7 text-zinc-600">{group.description}</p>
-                      </div>
-                      <span className="inline-flex h-8 items-center rounded-md border border-zinc-200 px-2.5 font-mono text-sm text-zinc-600">
-                        {group.items.length}
-                      </span>
-                    </div>
-                    <div className="mt-5 divide-y divide-zinc-100 border-t border-zinc-100">
-                      {group.items.map((item) => (
-                        <div
-                          className="grid gap-2 py-4 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)]"
-                          key={item.name}
-                        >
-                          <div>
-                            <p className="font-semibold text-zinc-950">{item.title ?? item.name}</p>
-                            <p className="mt-1 text-sm text-zinc-500">{formatType(item.type)}</p>
+                    <Layers data-icon="inline-start" />
+                    Catalog
+                  </Badge>
+                  <h2 className="mt-3 text-3xl font-semibold tracking-tight text-foreground">
+                    Registry groups built to grow.
+                  </h2>
+                </div>
+                <Badge variant="secondary">{filteredItems.length} visible items</Badge>
+              </div>
+
+              <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
+                <div className="grid gap-4">
+                  {registryGroups.map((group, groupIndex) => {
+                    const detail = styleDetailFor(group.style)
+                    const StyleIcon = detail.icon
+
+                    return (
+                      <Card
+                        className="registry-reveal shadow-[0_18px_46px_-34px_var(--elevation-color)]"
+                        key={group.style}
+                        style={revealStyle(groupIndex)}
+                      >
+                        <CardHeader>
+                          <div className="flex items-center gap-3">
+                            <span className={cn("inline-flex size-9 items-center justify-center rounded-lg border", detail.iconWrapClass)}>
+                              <StyleIcon />
+                            </span>
+                            <div>
+                              <CardTitle className="text-xl">{group.label}</CardTitle>
+                              <CardDescription>{group.description}</CardDescription>
+                            </div>
                           </div>
-                          <div className="flex flex-wrap gap-2">
-                            {itemTargets(item).map((target) => (
-                              <span
-                                className="max-w-full rounded-md bg-zinc-100 px-2.5 py-1 font-mono text-xs text-zinc-700"
-                                key={target}
+                          <CardAction>
+                            <Badge className={detail.badgeClass} variant="outline">
+                              {group.items.length}
+                            </Badge>
+                          </CardAction>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="divide-y divide-border border-t border-border">
+                            {group.items.map((item) => (
+                              <div
+                                className="grid gap-2 py-4 md:grid-cols-[minmax(0,0.7fr)_minmax(0,1fr)]"
+                                key={item.name}
                               >
-                                {target}
-                              </span>
+                                <div>
+                                  <p className="font-semibold text-foreground">{item.title ?? item.name}</p>
+                                  <p className="mt-1 text-sm text-muted-foreground">{formatType(item.type)}</p>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  {itemTargets(item).map((target) => (
+                                    <Badge
+                                      className="h-auto max-w-full rounded-md px-2.5 py-1 font-mono text-[0.72rem] whitespace-normal break-all md:h-5 md:px-1.5 md:py-0 md:text-[0.66rem] md:leading-none"
+                                      key={target}
+                                      variant="secondary"
+                                    >
+                                      {target}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              </div>
                             ))}
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-
-              <aside className="rounded-lg border border-zinc-200 bg-[#edf5f2] p-5">
-                <p className="text-sm font-bold uppercase text-teal-900">Consumer contract</p>
-                <div className="mt-4 grid gap-4">
-                  <div className="border-t border-teal-900/10 pt-4">
-                    <p className="font-semibold text-zinc-950">Install by URL</p>
-                    <p className="mt-1 text-sm leading-6 text-zinc-700">
-                      Each card points to a generated `/r/name.json` item payload.
-                    </p>
-                  </div>
-                  <div className="border-t border-teal-900/10 pt-4">
-                    <p className="font-semibold text-zinc-950">Targets are explicit</p>
-                    <p className="mt-1 text-sm leading-6 text-zinc-700">
-                      Target paths are shown before install so file placement is visible.
-                    </p>
-                  </div>
-                  <div className="border-t border-teal-900/10 pt-4">
-                    <p className="font-semibold text-zinc-950">Dependencies travel with items</p>
-                    <p className="mt-1 text-sm leading-6 text-zinc-700">
-                      Package and registry dependencies are listed from the registry manifest.
-                    </p>
-                  </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
                 </div>
-              </aside>
-            </div>
-          </section>
+
+                <Card className="bg-[var(--surface-tint)] shadow-none">
+                  <CardHeader>
+                    <Badge className="w-fit" variant="outline">
+                      <Info data-icon="inline-start" />
+                      Consumer contract
+                    </Badge>
+                    <CardTitle>Predictable registry payloads</CardTitle>
+                    <CardDescription>Small rules that keep installs inspectable.</CardDescription>
+                  </CardHeader>
+                  <CardContent className="grid gap-4">
+                    {contractItems.map((contractItem) => {
+                      const ContractIcon = contractItem.icon
+
+                      return (
+                        <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3" key={contractItem.title}>
+                          <span className="inline-flex size-8 items-center justify-center rounded-md border border-border bg-card text-muted-foreground">
+                            <ContractIcon className="size-4.5" />
+                          </span>
+                          <div>
+                            <p className="font-semibold text-foreground">{contractItem.title}</p>
+                            <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                              {contractItem.description}
+                            </p>
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </CardContent>
+                </Card>
+              </div>
+            </section>
+          </>
         )}
       </div>
     </main>
