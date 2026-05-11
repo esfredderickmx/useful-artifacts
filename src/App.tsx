@@ -467,7 +467,7 @@ function EmptyState({
   onClear: () => void
 }) {
   return (
-    <Card className="border-dashed shadow-none">
+    <Card className="h-full border-dashed shadow-none">
       <CardHeader>
         <Badge className="w-fit" variant="outline">
           <Info data-icon="inline-start" />
@@ -483,7 +483,7 @@ function EmptyState({
         )}
       </CardHeader>
       {query && (
-        <CardFooter>
+        <CardFooter className="flex-1 items-start">
           <Button onClick={onClear} type="button" variant="outline">
             <X data-icon="inline-start" />
             Clear search
@@ -559,7 +559,7 @@ export function App() {
 
     return readyItems.filter((item) => itemSearchText(item).includes(normalizedQuery))
   }, [normalizedQuery, readyItems])
-  const registryGroups = useMemo(() => groupRegistryItems(filteredItems), [filteredItems])
+  const registryGroups = useMemo(() => groupRegistryItems(readyItems), [readyItems])
   const installCommands = filteredItems.map((item) => itemInstallCommand(origin, item))
   const allInstallCommands = installCommands.join("\n")
   const itemCount = readyItems.length
@@ -926,7 +926,7 @@ export function App() {
                     Registry groups built to grow.
                   </h2>
                 </div>
-                <Badge variant="secondary">{filteredItems.length} visible items</Badge>
+                <Badge variant="secondary">{itemCount} total items</Badge>
               </div>
 
               <div className="grid gap-4 lg:grid-cols-[1.35fr_0.65fr]">
