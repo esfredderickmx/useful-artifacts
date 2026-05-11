@@ -756,7 +756,7 @@ export function App() {
                   className="h-10 pl-8 pr-9"
                   onChange={(event) => setQuery(event.target.value)}
                   placeholder="React, Laravel, target path"
-                  type="search"
+                  type="text"
                   value={query}
                 />
                 {query && (
