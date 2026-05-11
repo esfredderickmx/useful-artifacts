@@ -35,6 +35,34 @@
       ]
     },
     {
+      "name": "app-exception",
+      "type": "registry:file",
+      "title": "AppException",
+      "description": "Lets custom exceptions extend AppException to flash translatable alert or toast messages with a specific emphasis variant. Requires InertiaNotify::declare() in the boot method of a registered service provider because the shadcn CLI cannot register the macro.",
+      "files": [
+        {
+          "path": "registry/laravel/app/Exceptions/AppException.php",
+          "type": "registry:file",
+          "target": "app/Exceptions/AppException.php"
+        },
+        {
+          "path": "registry/laravel/app/Macros/InertiaNotify.php",
+          "type": "registry:file",
+          "target": "app/Macros/InertiaNotify.php"
+        },
+        {
+          "path": "registry/laravel/app/Enums/EmphasisVariant.php",
+          "type": "registry:file",
+          "target": "app/Enums/EmphasisVariant.php"
+        },
+        {
+          "path": "registry/laravel/app/Enums/FlashResponse.php",
+          "type": "registry:file",
+          "target": "app/Enums/FlashResponse.php"
+        }
+      ]
+    },
+    {
       "name": "emphasis-colors-full",
       "type": "registry:theme",
       "title": "Emphasis Colors (Full)",

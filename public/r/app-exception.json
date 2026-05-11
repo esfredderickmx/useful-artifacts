@@ -1,0 +1,33 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "app-exception",
+  "title": "AppException",
+  "description": "Lets custom exceptions extend AppException to flash translatable alert or toast messages with a specific emphasis variant. Requires InertiaNotify::declare() in the boot method of a registered service provider because the shadcn CLI cannot register the macro.",
+  "files": [
+    {
+      "path": "registry/laravel/app/Exceptions/AppException.php",
+      "content": "<?php\n\nnamespace App\\Exceptions;\n\nuse App\\Enums\\EmphasisVariant;\nuse App\\Enums\\FlashResponse;\nuse Exception;\nuse Illuminate\\Http\\RedirectResponse;\nuse Illuminate\\Http\\Request;\nuse Inertia\\Inertia;\n\nuse function back;\n\nclass AppException extends Exception\n{\n    public function __construct(string $message, protected FlashResponse $style = FlashResponse::CALLOUT, protected EmphasisVariant $variant = EmphasisVariant::AFFIRMATIVE)\n    {\n        parent::__construct($message, 400);\n    }\n\n    public function render(Request $request): RedirectResponse\n    {\n        Inertia::notify($this->message, $this->style, $this->variant);\n\n        return back();\n    }\n}\n",
+      "type": "registry:file",
+      "target": "app/Exceptions/AppException.php"
+    },
+    {
+      "path": "registry/laravel/app/Macros/InertiaNotify.php",
+      "content": "<?php\n\nnamespace App\\Macros;\n\nuse App\\Enums\\EmphasisVariant;\nuse App\\Enums\\FlashResponse;\nuse Inertia\\ResponseFactory;\n\nclass InertiaNotify\n{\n    public static function declare(): void\n    {\n        ResponseFactory::macro('notify', function (string $message, FlashResponse $style, EmphasisVariant $variant = EmphasisVariant::AFFIRMATIVE) {\n            return $this->flash($style->value, [\n                'message' => $message,\n                'variant' => $variant->value,\n            ]);\n        });\n    }\n}\n",
+      "type": "registry:file",
+      "target": "app/Macros/InertiaNotify.php"
+    },
+    {
+      "path": "registry/laravel/app/Enums/EmphasisVariant.php",
+      "content": "<?php\n\nnamespace App\\Enums;\n\nenum EmphasisVariant: string\n{\n    case AFFIRMATIVE = 'affirmative';\n    case INFORMATIVE = 'informative';\n    case PREVENTIVE = 'preventive';\n    case DESTRUCTIVE = 'destructive';\n    case INTERROGATIVE = 'interrogative';\n}\n",
+      "type": "registry:file",
+      "target": "app/Enums/EmphasisVariant.php"
+    },
+    {
+      "path": "registry/laravel/app/Enums/FlashResponse.php",
+      "content": "<?php\n\nnamespace App\\Enums;\n\nenum FlashResponse: string\n{\n    case CALLOUT = 'callout';\n    case TRANSIENT = 'transient';\n}\n",
+      "type": "registry:file",
+      "target": "app/Enums/FlashResponse.php"
+    }
+  ],
+  "type": "registry:file"
+}

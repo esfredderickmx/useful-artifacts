@@ -47,6 +47,34 @@ Target:
 
 - `app/Console/Commands/DropSchemas.php`
 
+### AppException
+
+Lets custom exceptions extend AppException to flash translatable alert or toast messages with a specific emphasis variant.
+
+```bash
+pnpm dlx shadcn@latest add https://your-registry-origin/r/app-exception.json
+```
+
+Targets:
+
+- `app/Exceptions/AppException.php`
+- `app/Macros/InertiaNotify.php`
+- `app/Enums/EmphasisVariant.php`
+- `app/Enums/FlashResponse.php`
+
+Required setup:
+
+Call the macro declaration from the `boot` method of a registered service provider because the shadcn CLI cannot register it automatically.
+
+```php
+use App\Macros\InertiaNotify;
+
+public function boot(): void
+{
+    InertiaNotify::declare();
+}
+```
+
 ### Emphasis Colors (Full)
 
 A full semantic emphasis color layer with surface, foreground, and emphasis tokens for destructive, affirmative, informative, preventive, and interrogative states. This variant replaces `destructive` tokens.
