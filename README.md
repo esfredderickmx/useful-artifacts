@@ -35,6 +35,22 @@ Dependencies:
 
 - `@phosphor-icons/react`
 
+### IconRenderer
+
+A small lucide-backed renderer for icon components stored in decoration or metadata objects.
+
+```bash
+pnpm dlx shadcn@latest add https://your-registry-origin/r/icon-renderer.json
+```
+
+Target:
+
+- `components/icon-renderer.tsx`
+
+Dependencies:
+
+- `lucide-react`
+
 ### DropSchemas Artisan Command
 
 A local-only Artisan command for dropping non-system PostgreSQL schemas on local and phpunit testing databases.

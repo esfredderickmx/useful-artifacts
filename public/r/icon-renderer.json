@@ -1,0 +1,17 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+  "name": "icon-renderer",
+  "title": "IconRenderer",
+  "description": "A small lucide-backed renderer for icon components stored in decoration or metadata objects.",
+  "dependencies": [
+    "lucide-react"
+  ],
+  "files": [
+    {
+      "path": "registry/react/components/icon-renderer.tsx",
+      "content": "import type { LucideIcon } from 'lucide-react';\nimport type { AriaAttributes } from 'react';\n\ntype IconRendererProps = {\n    iconNode: LucideIcon;\n    className?: string;\n} & AriaAttributes;\n\nfunction IconRenderer({ iconNode: IconComponent, className, ...props }: IconRendererProps) {\n    if (!IconComponent) {\n        return null;\n    }\n\n    return <IconComponent className={className} {...props} />;\n}\n\nexport { IconRenderer };\nexport type { IconRendererProps };\n",
+      "type": "registry:component"
+    }
+  ],
+  "type": "registry:component"
+}

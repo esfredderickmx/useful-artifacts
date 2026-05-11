@@ -22,6 +22,19 @@
       ]
     },
     {
+      "name": "icon-renderer",
+      "type": "registry:component",
+      "title": "IconRenderer",
+      "description": "A small lucide-backed renderer for icon components stored in decoration or metadata objects.",
+      "dependencies": ["lucide-react"],
+      "files": [
+        {
+          "path": "registry/react/components/icon-renderer.tsx",
+          "type": "registry:component"
+        }
+      ]
+    },
+    {
       "name": "drop-schemas",
       "type": "registry:file",
       "title": "DropSchemas Artisan Command",
