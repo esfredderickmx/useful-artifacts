@@ -33,7 +33,7 @@ Targets:
 
 Dependencies:
 
-- `@phosphor-icons/react`
+- `lucide-react`
 
 ### IconRenderer
 

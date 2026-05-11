@@ -8,7 +8,7 @@
       "type": "registry:hook",
       "title": "useDecorator",
       "description": "A typed helper hook for selecting decoration metadata by value.",
-      "dependencies": ["@phosphor-icons/react"],
+      "dependencies": ["lucide-react"],
       "files": [
         {
           "path": "registry/react/hooks/use-decorator.ts",

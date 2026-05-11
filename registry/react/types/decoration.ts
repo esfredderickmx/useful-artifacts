@@ -1,7 +1,7 @@
-import type { Icon } from '@phosphor-icons/react';
+import type { LucideIcon } from 'lucide-react';
 
 export type Decoration = {
     label: string;
     description: string;
-    icon: Icon;
+    icon: LucideIcon;
 };
